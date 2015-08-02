@@ -46,7 +46,7 @@ tg.on('message', function (msg) {
         if (msg.text && (msg.text.slice(0, 1) == '/')) {
             var strget = msg.text.split(' ');
             var ret = {
-                groupfrom: Math.abs(msg.chat.id),
+                chatfrom: Math.abs(msg.chat.id),
                 user: msg.from,
                 timestamp: msg.date
             };
@@ -58,8 +58,13 @@ tg.on('message', function (msg) {
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
                     break;
-                // case "/help":
-
+                case "/help": // INFO
+                    ret.target = msg.chat;
+                    ret.type = "help";
+                    ret.area = "any";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
                 // Normal Managed Group Part
                 case "/modkick":
                     if (msg.reply_to_message) {
@@ -79,8 +84,20 @@ tg.on('message', function (msg) {
                         EventEmitter.emit('cmd_request', ret);
                     }
                     break;
-                case "/rules":
-                case "/description":
+                case "/rules": // INFO
+                    ret.target = msg.chat;
+                    ret.type = "help";
+                    ret.area = "any";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
+                case "/description": // INFO
+                    ret.target = msg.chat;
+                    ret.type = "help";
+                    ret.area = "any";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
                 case "/promote":
                     if (msg.reply_to_message) {
                         ret.target = msg.reply_to_message.from;
@@ -99,7 +116,7 @@ tg.on('message', function (msg) {
                         EventEmitter.emit('cmd_request', ret);
                     }
                     break;
-                case "/invite":
+                /*case "/invite":  // Let's invite directly in client
                     if (!isNaN(strget[1])) {
                         ret.target = strget[1];
                         ret.type = "invitehere";
@@ -109,12 +126,24 @@ tg.on('message', function (msg) {
                     } else {
                         // Only ID is allowed
                     }
-                    break;
+                    break;*/
                 case "/modlist":
-                case "/groupinfo":
-
+                    ret.target = Math.abs(msg.chat.id);
+                    ret.type = "modlist";
+                    ret.area = "managed";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
+                case "/group-info":
+                    /*ret.target = msg.chat;
+                    ret.type = "group-info";
+                    ret.area = "any"; // !IMPORTANT
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);*/
+                    outputGroupInfo(msg.chat, msg.chat); // Implement This
+                    break;
                 // Admin Group Part
-                case "/define2admingroup":
+                case "/make-this-admin-group": // The User Executor runs in should always be admin.
                     ret.target = Math.abs(msg.chat.id);
                     ret.type = "define_to_admin_group";
                     ret.area = "any";
@@ -129,7 +158,7 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
+                        // Sad things :(
                     }
                     break;
                 case "/unclaim": // ID
@@ -140,11 +169,12 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
+                        // Sad things :(
                     }
                     break;
-                case "/ban": // ID, TargetIsObject, HaveToDo
-                    if (!isNaN(strget[1]) && !isNaN(strget[2])) { //TODO: Should Add judgement about existence of the arguments.
+                // TODO: Support Username Search for the following commands.
+                case "/ban": // ID, TargetIsObject
+                    if (!isNaN(strget[1]) && !isNaN(strget[2])) { 
                         ret.target = {
                             user: parseInt(strget[1]),
                             group: parseInt(strget[2])
@@ -154,19 +184,7 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
-                    }
-                    break;
-                case "/fwdban": // Object, TargetIsObject
-                    if (msg.reply_to_message && msg.reply_to_message.forward_from && !isNaN(strget[1])) {
-                        ret.target = {
-                            user: msg.reply_to_message.forward_from,
-                            group: parseInt(strget[2])
-                        };
-                        ret.type = "ban";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        // Sad things :(
                     }
                     break;
                 case "/banall": // ID
@@ -177,7 +195,7 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
+                        // Sad things :(
                     }
                     break;
                 case "/unban": // ID, TargetIsObject
@@ -191,19 +209,7 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
-                    }
-                    break;
-                case "/fwdunban": // Object, TargetIsObject
-                    if (msg.reply_to_message && msg.reply_to_message.forward_from && !isNaN(strget[1])) {
-                        ret.target = {
-                            user: msg.reply_to_message.forward_from,
-                            group: parseInt(strget[2])
-                        };
-                        ret.type = "unban";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        // Sad things :(
                     }
                     break;
                 case "/unbanall": // ID
@@ -217,11 +223,24 @@ tg.on('message', function (msg) {
                         // Only ID is allowed
                     }
                     break;
-                case "/listbanning":
+                case "/listban":
+                    ret.target = msg.from;
+                    ret.type = "listban";
+                    ret.area = "admingroup";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
+                case "/listadmin":
+                    ret.target = msg.from;
+                    ret.type = "listadmin";
+                    ret.area = "admingroup";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
                 case "/listmanaged":
                     ret.target = msg.from;
                     ret.type = "listmanagedgroup";
-                    ret.area = "managed";
+                    ret.area = "admingroup";
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
                     break;
@@ -233,39 +252,24 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
+                        // Sad Things :(
                     }
                     break;
-                case "/add-admin":
-                case "/remove-admin":
+                case "/add-admin": // The bot Holder has the ability to add admins without proposals
+                case "/remove-admin": // Also
                 case "/join":
+                    ret.target = msg.from;
+                    ret.type = "join";
+                    ret.area = "admingroup";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
                 case "/settings":
-                case "/getid":
 
                 // .... Not Implemented
-                case "/create-group":
-                // case "/export-link"
-                // case "/resolve-username"
-                // case "/group-info"
+                // case "/resolve-username": // Database Lookup
 
                 // .... special cases
                 case "/set":
-                case "/list":
-
-                // Headquarter
-                case "/block":
-                    ret.target = strget[1];
-                    ret.type = "block";
-                    ret.area = "any";
-                    ret.require_permission = "headquarter";
-                    EventEmitter.emit('cmd_request', ret);
-                break;
-                case "/unblock":
-                    ret.target = strget[1];
-                    ret.type = "unblock";
-                    ret.area = "any";
-                    ret.require_permission = "headquarter";
-                    EventEmitter.emit('cmd_request', ret);
             }
         }
 
@@ -290,6 +294,8 @@ var outinterface = {
         return tg.sendMessage(msgobj);
     },
     newProposal: function (content, isspecial) {
-
+        // New Proposal Message, forceReply and Keyboard On
+        // messageID -> voteID
+        // Write out Result and then call the callback.
     }
 };
