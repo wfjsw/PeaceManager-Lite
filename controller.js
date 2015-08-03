@@ -1,3 +1,5 @@
+// Controller
+
 var Telegram = require('telegram-bot');
 var tg;
 var EventEmitter = require('events').EventEmitter;
@@ -128,7 +130,7 @@ tg.on('message', function (msg) {
                     }
                     break;*/
                 case "/modlist":
-                    ret.target = Math.abs(msg.chat.id);
+                    ret.target = msg.chat;
                     ret.type = "modlist";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
@@ -140,11 +142,11 @@ tg.on('message', function (msg) {
                     ret.area = "any"; // !IMPORTANT
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);*/
-                    outputGroupInfo(msg.chat, msg.chat); // Implement This
+                    outputGroupInfo(msg.chat, msg.chat); // Implement-ing This
                     break;
                 // Admin Group Part
                 case "/make-this-admin-group": // The User Executor runs in should always be admin.
-                    ret.target = Math.abs(msg.chat.id);
+                    ret.target = msg.chat;
                     ret.type = "define_to_admin_group";
                     ret.area = "any";
                     ret.require_permission = "anyone";
@@ -220,7 +222,7 @@ tg.on('message', function (msg) {
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else {
-                        // Only ID is allowed
+                        // Sad things :(
                     }
                     break;
                 case "/listban":
@@ -256,25 +258,136 @@ tg.on('message', function (msg) {
                     }
                     break;
                 case "/add-admin": // The bot Holder has the ability to add admins without proposals
+                    // Also, do that in reply
+                    // Only ask the creator
+                    if (msg.reply_to_message) {
+                        ret.target = msg.reply_to_message.from;
+                        ret.type = "add-admin";
+                        ret.area = "admingroup";
+                        ret.require_permission = "admin";
+                        EventEmitter.emit('cmd_request', ret);
+                    } else if (!isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "add-admin";
+                        ret.area = "admingroup";
+                        ret.require_permission = "admin";
+                        EventEmitter.emit('cmd_request', ret);
+                    }
+                    break;
                 case "/remove-admin": // Also
+                    if (msg.reply_to_message) {
+                        ret.target = msg.reply_to_message.from;
+                        ret.type = "remove-admin";
+                        ret.area = "admingroup";
+                        ret.require_permission = "admin";
+                        EventEmitter.emit('cmd_request', ret);
+                    } else if (!isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "remove-admin";
+                        ret.area = "admingroup";
+                        ret.require_permission = "admin";
+                        EventEmitter.emit('cmd_request', ret);
+                    }
+                    break;
                 case "/join":
                     ret.target = msg.from;
                     ret.type = "join";
                     ret.area = "admingroup";
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
+                    break;
                 case "/settings":
-
+                    ret.target = msg.from;
+                    ret.type = "show-settings";
+                    ret.area = "admingroup";
+                    ret.require_permission = "admin";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
+                case "/ping":
+                    ret.target = msg.from;
+                    ret.type = "ping";
+                    ret.area = "any";
+                    ret.require_permission = "anyone";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
+                case "/reconnect":
+                    ret.target = msg.from;
+                    ret.type = "reconnect";
+                    ret.area = "any";
+                    ret.require_permission = "admin";
+                    EventEmitter.emit('cmd_request', ret);
+                    break;
                 // .... Not Implemented
                 // case "/resolve-username": // Database Lookup
 
                 // .... special cases
-                case "/set":
+                case "/set": // May cause deadlock
+                    if (strget[1]) 
+                        switch (strget[1]) {
+                            case "voting-threshold":
+                                if (isNaN(strget[2])) {
+                                    ret.target = msg.chat;
+                                    ret.type = "set-voting_threshold";
+                                    ret.area = "admingroup";
+                                    ret.require_permission = "admin";
+                                    EventEmitter.emit('cmd_request', ret);
+                                }
+                                break;
+                            case "special-threshold":
+                                if (isNaN(strget[2])) {
+                                    ret.target = msg.chat;
+                                    ret.type = "set-special_threshold";
+                                    ret.area = "admingroup";
+                                    ret.require_permission = "admin";
+                                    EventEmitter.emit('cmd_request', ret);
+                                }
+                                break;
+                            case "voting-period":
+                                if (isNaN(strget[2])) {
+                                    ret.target = msg.chat;
+                                    ret.type = "set-voting_threshold";
+                                    ret.area = "admingroup";
+                                    ret.require_permission = "admin";
+                                    EventEmitter.emit('cmd_request', ret);
+                                }
+                                break;
+                            case "lock":
+                                // blah blah blah...
+                                if (strget[2])
+                                    switch (strget[2]) {
+                                        case "titles":
+                                            if (strget[3] == "on") {
+                                                ret.target = msg.chat;
+                                                ret.type = "set-lock-title-on";
+                                                ret.area = "admingroup";
+                                                ret.require_permission = "admin";
+                                                EventEmitter.emit('cmd_request', ret);
+                                            } else if (strget[3] == "off") {
+                                                ret.target = msg.chat;
+                                                ret.type = "set-lock-title-off";
+                                                ret.area = "admingroup";
+                                                ret.require_permission = "admin";
+                                                EventEmitter.emit('cmd_request', ret);
+                                            }
+                                            break;
+                                        //case "photos": Not Implemented
+                                    }
+                                break;
+                        }
+                    break;
             }
         }
 
     }
 })
+module.exports = outinterface;
+
+// send target's info to requestfrom
+function outputGroupInfo(requestfrom, target) {
+    if (requestfrom && target.id < 0) {
+        outinterface.msg(); // Write this later
+    }
+}
 
 
 var outinterface = {
@@ -293,7 +406,7 @@ var outinterface = {
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);
     },
-    newProposal: function (content, isspecial) {
+    newProposal: function (content, votingperiod, votingthreshold) {
         // New Proposal Message, forceReply and Keyboard On
         // messageID -> voteID
         // Write out Result and then call the callback.

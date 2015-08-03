@@ -1,3 +1,5 @@
+// Executor
+
 var EventEmitter = require('events').EventEmitter;
 var Promise = require('promise');
 var net = require('net');
@@ -39,13 +41,19 @@ function newmsg(command, resolve, reject) {
 
 var outinterface = {
     init: function (config) {
-              return new Promise(function (resolve, reject) {
-                clientupd = net.connect({port: config.port, host: config.host || "127.0.0.1"}, function() { 
-                    connected = true;
-                    initqueue();
-                    resolve("connected");
-                });
-              })
+        return new Promise(function (resolve, reject) {
+            clientupd = net.connect({port: config.port, host: config.host || "127.0.0.1"}, function() {
+                connected = true;
+                socket.setKeepAlive(true);
+                initqueue();
+                resolve("connected");
+            });
+        })
+    },
+    disconnect: function () {
+        clientupd.end();
+        connected = false;
+        clearInterval(queuetimer);
     },
     startqueue: function () {
         clearInterval(queuetimer);
