@@ -68,16 +68,22 @@ tg.on('message', function (msg) {
                     EventEmitter.emit('cmd_request', ret);
                     break;
                 // Normal Managed Group Part
-                case "/modkick":
+                case "/kick":
                     if (msg.reply_to_message) {
                         ret.target = msg.reply_to_message.from;
                         ret.type = "kick";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
                         EventEmitter.emit('cmd_request', ret);
+                    } else if (isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "kick";
+                        ret.area = "managed";
+                        ret.require_permission = "moderator";
+                        EventEmitter.emit('cmd_request', ret);
                     }
                     break;
-                case "/modban":
+                case "/ban":
                     if (msg.reply_to_message) {
                         ret.target = msg.reply_to_message.from;
                         ret.type = "ban";
@@ -89,14 +95,14 @@ tg.on('message', function (msg) {
                 case "/rules": // INFO
                     ret.target = msg.chat;
                     ret.type = "help";
-                    ret.area = "any";
+                    ret.area = "managed";
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
                     break;
                 case "/description": // INFO
                     ret.target = msg.chat;
                     ret.type = "help";
-                    ret.area = "any";
+                    ret.area = "managed";
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
                     break;
@@ -118,17 +124,6 @@ tg.on('message', function (msg) {
                         EventEmitter.emit('cmd_request', ret);
                     }
                     break;
-                /*case "/invite":  // Let's invite directly in client
-                    if (!isNaN(strget[1])) {
-                        ret.target = strget[1];
-                        ret.type = "invitehere";
-                        ret.area = "managed";
-                        ret.require_permission = "anyone";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Only ID is allowed
-                    }
-                    break;*/
                 case "/modlist":
                     ret.target = msg.chat;
                     ret.type = "modlist";
@@ -137,170 +132,13 @@ tg.on('message', function (msg) {
                     EventEmitter.emit('cmd_request', ret);
                     break;
                 case "/group-info":
-                    /*ret.target = msg.chat;
-                    ret.type = "group-info";
-                    ret.area = "any"; // !IMPORTANT
-                    ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);*/
                     outputGroupInfo(msg.chat, msg.chat); // Implement-ing This
-                    break;
-                // Admin Group Part
-                case "/make-this-admin-group": // The User Executor runs in should always be admin.
-                    ret.target = msg.chat;
-                    ret.type = "define_to_admin_group";
-                    ret.area = "any";
-                    ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
-                    break;
-                case "/claim": // ID
-                    if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "claim_to_admin_group";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
-                    break;
-                case "/unclaim": // ID
-                    if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "unclaim_to_admin_group";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
-                    break;
-                // TODO: Support Username Search for the following commands.
-                case "/ban": // ID, TargetIsObject
-                    if (!isNaN(strget[1]) && !isNaN(strget[2])) { 
-                        ret.target = {
-                            user: parseInt(strget[1]),
-                            group: parseInt(strget[2])
-                        };
-                        ret.type = "ban";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
-                    break;
-                case "/banall": // ID
-                    if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "banall";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
-                    break;
-                case "/unban": // ID, TargetIsObject
-                    if (!isNaN(strget[1]) && !isNaN(strget[2])) {
-                        ret.target = {
-                            user: parseInt(strget[1]),
-                            group: parseInt(strget[2])
-                        };
-                        ret.type = "unban";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
-                    break;
-                case "/unbanall": // ID
-                    if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "unbanall";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad things :(
-                    }
                     break;
                 case "/listban":
                     ret.target = msg.from;
                     ret.type = "listban";
-                    ret.area = "admingroup";
+                    ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
-                    break;
-                case "/listadmin":
-                    ret.target = msg.from;
-                    ret.type = "listadmin";
-                    ret.area = "admingroup";
-                    ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
-                    break;
-                case "/listmanaged":
-                    ret.target = msg.from;
-                    ret.type = "listmanagedgroup";
-                    ret.area = "admingroup";
-                    ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
-                    break;
-                case "/kick": // ID
-                    if (!isNaN(strget[1]) && !isNaN(strget[2])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "ban";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else {
-                        // Sad Things :(
-                    }
-                    break;
-                case "/add-admin": // The bot Holder has the ability to add admins without proposals
-                    // Also, do that in reply
-                    // Only ask the creator
-                    if (msg.reply_to_message) {
-                        ret.target = msg.reply_to_message.from;
-                        ret.type = "add-admin";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "add-admin";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    }
-                    break;
-                case "/remove-admin": // Also
-                    if (msg.reply_to_message) {
-                        ret.target = msg.reply_to_message.from;
-                        ret.type = "remove-admin";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    } else if (!isNaN(strget[1])) {
-                        ret.target = parseInt(strget[1]);
-                        ret.type = "remove-admin";
-                        ret.area = "admingroup";
-                        ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
-                    }
-                    break;
-                case "/join":
-                    ret.target = msg.from;
-                    ret.type = "join";
-                    ret.area = "admingroup";
-                    ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
-                    break;
-                case "/settings":
-                    ret.target = msg.from;
-                    ret.type = "show-settings";
-                    ret.area = "admingroup";
-                    ret.require_permission = "admin";
                     EventEmitter.emit('cmd_request', ret);
                     break;
                 case "/ping":
@@ -310,13 +148,13 @@ tg.on('message', function (msg) {
                     ret.require_permission = "anyone";
                     EventEmitter.emit('cmd_request', ret);
                     break;
-                case "/reconnect":
+                /*case "/reconnect":
                     ret.target = msg.from;
                     ret.type = "reconnect";
                     ret.area = "any";
                     ret.require_permission = "admin";
                     EventEmitter.emit('cmd_request', ret);
-                    break;
+                    break;*/
                 // .... Not Implemented
                 // case "/resolve-username": // Database Lookup
 
@@ -324,33 +162,27 @@ tg.on('message', function (msg) {
                 case "/set": // May cause deadlock
                     if (strget[1]) 
                         switch (strget[1]) {
-                            case "voting-threshold":
+                            // Pass this function to @Jqs7Bot
+                            /*
+                            case "rules":  // don't got an idea here
                                 if (isNaN(strget[2])) {
                                     ret.target = msg.chat;
-                                    ret.type = "set-voting_threshold";
-                                    ret.area = "admingroup";
+                                    ret.type = "set-rules";
+                                    ret.area = "any";
                                     ret.require_permission = "admin";
                                     EventEmitter.emit('cmd_request', ret);
                                 }
                                 break;
-                            case "special-threshold":
+                            case "description": // don't got an idea here either
                                 if (isNaN(strget[2])) {
                                     ret.target = msg.chat;
-                                    ret.type = "set-special_threshold";
-                                    ret.area = "admingroup";
+                                    ret.type = "set-description";
+                                    ret.area = "any";
                                     ret.require_permission = "admin";
                                     EventEmitter.emit('cmd_request', ret);
                                 }
                                 break;
-                            case "voting-period":
-                                if (isNaN(strget[2])) {
-                                    ret.target = msg.chat;
-                                    ret.type = "set-voting_threshold";
-                                    ret.area = "admingroup";
-                                    ret.require_permission = "admin";
-                                    EventEmitter.emit('cmd_request', ret);
-                                }
-                                break;
+                             */
                             case "lock":
                                 // blah blah blah...
                                 if (strget[2])
@@ -359,13 +191,13 @@ tg.on('message', function (msg) {
                                             if (strget[3] == "on") {
                                                 ret.target = msg.chat;
                                                 ret.type = "set-lock-title-on";
-                                                ret.area = "admingroup";
+                                                ret.area = "managed";
                                                 ret.require_permission = "admin";
                                                 EventEmitter.emit('cmd_request', ret);
                                             } else if (strget[3] == "off") {
                                                 ret.target = msg.chat;
                                                 ret.type = "set-lock-title-off";
-                                                ret.area = "admingroup";
+                                                ret.area = "managed";
                                                 ret.require_permission = "admin";
                                                 EventEmitter.emit('cmd_request', ret);
                                             }
@@ -405,10 +237,5 @@ var outinterface = {
     },
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);
-    },
-    newProposal: function (content, votingperiod, votingthreshold) {
-        // New Proposal Message, forceReply and Keyboard On
-        // messageID -> voteID
-        // Write out Result and then call the callback.
     }
 };
