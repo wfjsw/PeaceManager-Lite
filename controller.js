@@ -29,7 +29,7 @@ tg.on('message', function (msg) {
                 group: Math.abs(msg.chat.id),
                 timestamp: msg.date,
                 from: msg.from,
-                title: msg.new_chat_photo
+                photo: msg.new_chat_photo
             };
             EventEmitter.emit('new_chat_photo', ret);
         } else if (msg.delete_chat_photo) {
@@ -70,7 +70,7 @@ tg.on('message', function (msg) {
                 // Normal Managed Group Part
                 case "/kick":
                     if (msg.reply_to_message) {
-                        ret.target = msg.reply_to_message.from;
+                        ret.target = msg.reply_to_message.from.id;
                         ret.type = "kick";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
@@ -85,10 +85,31 @@ tg.on('message', function (msg) {
                     break;
                 case "/ban":
                     if (msg.reply_to_message) {
-                        ret.target = msg.reply_to_message.from;
+                        ret.target = msg.reply_to_message.from.id;
                         ret.type = "ban";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
+                        EventEmitter.emit('cmd_request', ret);
+                    } else if (isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "ban";
+                        ret.area = "managed";
+                        ret.require_permission = "moderator";
+                        EventEmitter.emit('cmd_request', ret);
+                    }
+                    break;
+                case "/banall":
+                    if (msg.reply_to_message) {
+                        ret.target = msg.reply_to_message.from.id;
+                        ret.type = "ban";
+                        ret.area = "managed";
+                        ret.require_permission = "admin";
+                        EventEmitter.emit('cmd_request', ret);
+                    } else if (isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "ban";
+                        ret.area = "managed";
+                        ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     }
                     break;
@@ -212,12 +233,14 @@ tg.on('message', function (msg) {
 
     }
 })
-module.exports = outinterface;
 
 // send target's info to requestfrom
 function outputGroupInfo(requestfrom, target) {
     if (requestfrom && target.id < 0) {
-        outinterface.msg(); // Write this later
+        outinterface.msg({
+            text: "Group ID " + Math.abs(target.id),
+            chat_id: requestfrom.id
+        });
     }
 }
 
@@ -239,3 +262,5 @@ var outinterface = {
         return tg.sendMessage(msgobj);
     }
 };
+
+module.exports = outinterface;

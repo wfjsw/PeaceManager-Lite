@@ -12,8 +12,94 @@ var connected = false;
 
 function processManagedCommand(ret) {
     switch (ret.require_permission) {
-
+        case "admin":
+            // Check Admin
+            // We assume that Admin ID is in Config File
+            if (ret.from.id == config.admin_id) {
+                /*
+                 * promote
+                 * demote
+                 * lock title
+                 * lock photo
+                 * banall
+                 */
+                switch (ret.type) {
+                    case "promote":
+                        // Check then update record
+                        Promote(ret);
+                        break;
+                    case "demote":
+                        // Check then update record
+                        Demote(ret);
+                        break;
+                    case "set-lock-title-on":
+                        titleLocker(true, ret);
+                        break;
+                    case "set-lock-title-off":
+                        titleLocker(false, ret);
+                        break;
+                    case "banall":
+                        Ban(ret);
+                        break;
+                    case "unbanall":
+                }
+            }
+            break;
+        case "moderator":
+            db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
+                $uid: ret.user.id,
+                $gid: ret.group
+            }, function (err, row) {
+                if (err) {
+                    console.error(err);
+                } else if (row) {
+                    // Check Passed.
+                    switch (ret.type) {
+                        case "kick":
+                            // Check then update record
+                            Kick(ret);
+                            break;
+                        case "ban":
+                            // Check then update record
+                            Ban(ret);
+                            break;
+                        case "unban":
+                    }
+                }
+            });
+            break;
+        case "anyone":
+        default:
+            // ERROR
     }
+}
+
+function outputHelp(ret) {
+    // Any Help msg?
+}
+
+function requestPing(ret) {
+    executor.msg(ret.chatfrom, "Pong!");
+}
+
+function Promote(ret) {
+
+}
+
+function Demote(ret) {
+
+}
+
+function titleLocker(stat, ret){
+
+}
+
+function Ban(ret) {
+
+}
+
+function Kick(ret) {
+
 }
 
 controller.on('cmd_request', function (ret) {
@@ -29,15 +115,16 @@ controller.on('cmd_request', function (ret) {
                         * /register
                         */
                         switch (ret.type) {
-                            case "reconnect": // Low Priority
-                                executorReconnect(ret);
+                            case "reconnect":// Low Priority
+                                // executorReconnect(ret);
                                 break;
                         }
                     }
+                    break;
                 case "anyone":
                     /* Command here:
                      * /help ---> divide into different situation
-                     * /ping ---> pass the ping to Executor
+                     * /ping ---> pass the ping to Executor - done
                      */
                     switch (ret.type) {
                         case "help":
@@ -47,6 +134,7 @@ controller.on('cmd_request', function (ret) {
                             requestPing(ret);
                             break;
                     }
+                    break;
                 default:
                     // Print Error and then
                     return;
@@ -56,7 +144,7 @@ controller.on('cmd_request', function (ret) {
         case "managed":
             // Some Check Here
             db.get("SELECT * FROM managed_group WHERE id = $gid", {
-                $uid: ret.group
+                $gid: ret.group
             }, function (err, row) {
                 if (err) {
                     console.error(err);
@@ -70,24 +158,38 @@ controller.on('cmd_request', function (ret) {
 });
 controller.on('delete_chat_photo', function (ret) {
     // Output id
+    controller.msg({
+        text: "#GroupPhotoDeleted by @" + ret.from.username + " ( " + ret.from.id + " ) ",
+        chat_id: -(ret.group)
+    });
 });
 controller.on('new_chat_title', function (ret) {
     // Check Lock - done
     db.get("SELECT * FROM managed_group WHERE id = $gid", {
-        $uid: ret.group
+        $gid: ret.group
     }, function (err, row) {
         if (err) {
             console.error(err);
             // Send Error Msg
         } else if (row.is_title_locked == 1) {
             executor.group_setname(ret.group, row.title);
+        } else {
+            // Output something, Update Database
+            controller.msg({
+                text: "#GroupTitleChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
+                chat_id: -(ret.group)
+            });
         }
     });
-    // Output something
 });
 controller.on('new_chat_photo', function (ret) {
     // Output id
+    controller.msg({
+        text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
+        chat_id: -(ret.group)
+    });
 });
+
 controller.on('new_chat_participant', function (ret) {
     // Check Ban DB
     // First, check Hard-coded global ban db (Only Two User) :p ---> wfjsw/PeaceManager#1 - done
@@ -95,6 +197,7 @@ controller.on('new_chat_participant', function (ret) {
         executor.kickuser(ret.group, ret.user.id);
         return;
     }
+
     // Then, Check Ban All DataBase (Can't work around with the callback paramid :( ) - done
     db.get("SELECT id FROM banall_list WHERE userid = $uid", {
         $uid: ret.user.id
@@ -106,6 +209,7 @@ controller.on('new_chat_participant', function (ret) {
             executor.kickuser(ret.group, ret.user.id);
         }    
     });
+
     // Check Ban Individal Database - done
     db.get("SELECT id FROM banned_list WHERE userid = $uid AND gid = $gid", {
         $uid: ret.user.id,
@@ -118,6 +222,13 @@ controller.on('new_chat_participant', function (ret) {
             executor.kickuser(ret.group, ret.user.id);
         }
     });
+
+    // Output User Details - pending
+    controller.msg({
+        text: "#UserJoin @" + ret.from.username + " ( " + ret.from.id + " ) ",
+        chat_id: -(ret.group)
+    });
+
 });
 
 // First Init
