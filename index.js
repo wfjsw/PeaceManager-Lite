@@ -8,7 +8,7 @@ var sqlite3 = require('sqlite3');
 var db = new sqlite3.Database(config.db_file);
 var connected = false;
 
-
+// Main TODO: prevent user from ban bot itself
 
 function processManagedCommand(ret) {
     switch (ret.require_permission) {
@@ -69,6 +69,8 @@ function processManagedCommand(ret) {
             });
             break;
         case "anyone":
+            // kickme and help
+            break;
         default:
             // ERROR
     }
@@ -119,7 +121,11 @@ function Demote(ret) {
 }
 
 function titleLocker(stat, ret){
-
+    var lock = stat ? 1 : 0;
+    db.run("UPDATE managed_group SET is_title_locked = $lock WHERE id = $gid", {
+        $gid: ret.chatfrom,
+        $lock: lock
+    });
 }
 
 function Ban(ret) {
@@ -154,6 +160,40 @@ function Ban(ret) {
                 });
                 Kick(ret);
             }
+        });
+    }
+}
+
+function unBan(ret) {
+    // Check
+    if (ret.type == "unban") {
+        db.get("SELECT * FROM banned_list WHERE userid = $uid AND gid = $gid", {
+            $uid: ret.target,
+            $gid: ret.chatfrom
+        }, function (err, row) {
+            if (err) {
+                console.error(err);
+            } else if (row) {
+                // Check Passed.
+                db.run("DELETE FROM banned_list WHERE userid = $uid AND gid = $gid", {
+                    $uid: ret.target,
+                    $eid: ret.user.id,
+                    $gid: ret.chatfrom
+                });
+            } // Else: User Is Not Banned
+        });
+    } else if (ret.type == "banall") {
+        db.get("SELECT * FROM banall_list WHERE userid = $uid", {
+            $uid: ret.target
+        }, function (err, row) {
+            if (err) {
+                console.error(err);
+            } else if (row) {
+                // Check Passed.
+                db.run("DELETE FROM banall_list WHERE userid = $uid", {
+                    $uid: ret.target
+                });
+            } // Else: User is Not Banned across All
         });
     }
 }
@@ -198,7 +238,6 @@ controller.on('cmd_request', function (ret) {
                 default:
                     // Print Error and then
                     return;
-                    break;
             }
             break;
         case "managed":
@@ -240,7 +279,10 @@ controller.on('new_chat_title', function (ret) {
                 chat_id: -(ret.group)
             });
             // Update Database
-
+            db.run("UPDATE managed_group SET title = $lock WHERE id = $gid", {
+                $gid: ret.group,
+                $title: ret.title
+            });
         }
     });
 });
@@ -256,7 +298,7 @@ controller.on('new_chat_participant', function (ret) {
     // Check Ban DB
     // First, check Hard-coded global ban db (Only Two User) :p ---> wfjsw/PeaceManager#1 - done
     if (ret.user.id == 68256164 || ret.user.id == 53835259) {
-        Kick(ret);
+        executor.kickuser(ret.group, ret.user.id);
         return;
     }
 
@@ -268,7 +310,7 @@ controller.on('new_chat_participant', function (ret) {
             console.error(err);
             // Send Error Msg
         } else if (row) {
-            Kick(ret);
+            executor.kickuser(ret.group, ret.user.id);
         }    
     });
 
@@ -281,7 +323,7 @@ controller.on('new_chat_participant', function (ret) {
             console.error(err);
             // Send Error Msg
         } else if (row) {
-            Kick(ret);
+            executor.kickuser(ret.group, ret.user.id);
         }
     });
 
@@ -303,7 +345,7 @@ controller.on('new_chat_participant', function (ret) {
                 $title: ret.title
             });
         } else if (row) {
-            db.run("UPDATE managed_group SET title = $title WHERE iid = $gid", {
+            db.run("UPDATE managed_group SET title = $title WHERE id = $gid", {
                 $gid: ret.group,
                 $title: ret.title
             });
