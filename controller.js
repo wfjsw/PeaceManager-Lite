@@ -12,6 +12,7 @@ tg.on('message', function (msg) {
         if (msg.new_chat_participant) {
             var ret = {
                 group: Math.abs(msg.chat.id),
+                title: msg.chat.title,
                 timestamp: msg.date,
                 user: msg.new_chat_participant
             };
@@ -101,13 +102,13 @@ tg.on('message', function (msg) {
                 case "/banall":
                     if (msg.reply_to_message) {
                         ret.target = msg.reply_to_message.from.id;
-                        ret.type = "ban";
+                        ret.type = "banall";
                         ret.area = "managed";
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
                     } else if (isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
-                        ret.type = "ban";
+                        ret.type = "banall";
                         ret.area = "managed";
                         ret.require_permission = "admin";
                         EventEmitter.emit('cmd_request', ret);
