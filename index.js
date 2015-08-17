@@ -398,7 +398,7 @@ controller.event.on('new_chat_participant', function (ret) {
 
     // Output User Details - done
     controller.msg({
-        text: "#UserJoin @" + ret.from.username + " ( " + ret.from.id + " ) ",
+        text: "#UserJoin @" + ret.user.username + " ( " + ret.user.id + " ) ",
         chat_id: -(ret.group)
     });
     // Extra Bonus: Update Title And Database - done
