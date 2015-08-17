@@ -349,7 +349,7 @@ controller.event.on('new_chat_title', function (ret) {
                 chat_id: -(ret.group)
             });
             // Update Database
-            db.run("UPDATE managed_group SET title = $lock WHERE id = $gid", {
+            db.run("UPDATE managed_group SET title = $title WHERE id = $gid", {
                 $gid: ret.group,
                 $title: ret.title
             });
