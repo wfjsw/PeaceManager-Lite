@@ -44,7 +44,7 @@ var outinterface = {
         return new Promise(function (resolve, reject) {
             clientupd = net.connect({path: config.cli.socket}, function() {
                 connected = true;
-                socket.setKeepAlive(true);
+                clientupd.setKeepAlive(true);
                 initqueue();
                 resolve("connected");
             });
