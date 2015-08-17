@@ -4,6 +4,7 @@
 
 var controller = require('./controller.js');
 var executor = require('./executor.js');
+var config = require('./config.js');
 var sqlite3 = require('sqlite3');
 var db = new sqlite3.Database(config.db_file);
 var connected = false;
@@ -42,6 +43,8 @@ function processManagedCommand(ret) {
                         Ban(ret);
                         break;
                     case "unbanall":
+                        unBan(ret);
+                        break;
                 }
             }
             break;
@@ -64,12 +67,30 @@ function processManagedCommand(ret) {
                             Ban(ret);
                             break;
                         case "unban":
+                            unBan(ret);
+                            break;
                     }
                 }
             });
             break;
         case "anyone":
             // kickme and help
+            switch (ret.type) {
+                case "kick":
+                    // kickme :p
+                    if (ret.target.id == ret.user.id) Kick(ret);
+                    break;
+                case "help":
+                    outputHelp(ret);
+                    break;
+                case "modlist":
+                    listModerators(ret);
+                    break;
+                case "listban":
+                case "listbanall":
+                    listBannings(ret);
+                    break;
+            }
             break;
         default:
             // ERROR
@@ -84,6 +105,39 @@ function requestPing(ret) {
     executor.msg(ret.chatfrom, "Pong!");
 }
 
+function listModerators(ret) {
+    db.all("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
+        $uid: ret.target.id,
+        $gid: ret.chatfrom
+    }, function (err, rows) {
+        if (err) {
+            console.error(err);
+        } else if (rows == []) {
+            controller.msg({
+                text: "No Moderator Found",
+                chat_id: -(ret.chatfrom)
+            });
+        } else {
+            var output = "Moderator List for " + ret.chatfrom + "\n";
+            for (var i in rows) {
+                output += i.modid + "\n";
+            }
+            controller.msg({
+                text: output,
+                chat_id: -(ret.chatfrom)
+            });
+        }
+    });
+}
+
+function listBannings(ret) {
+    // ignore too long
+    controller.msg({
+        text: "Not Implemented",
+        chat_id: -(ret.chatfrom)
+    });
+}
+
 function Promote(ret) {
     // Check
     db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
@@ -92,13 +146,27 @@ function Promote(ret) {
     }, function (err, row) {
         if (err) {
             console.error(err);
+            controller.msg({
+                text: "Error occurred.",
+                chat_id: -(ret.chatfrom)
+            });
         } else if (row === undefined) {
             // Check Passed.
             db.run("INSERT INTO moderator_list (modid, gid) VALUES ($uid, $gid)", {
                 $uid: ret.target.id,
                 $gid: ret.chatfrom
             });
+            controller.msg({
+                text: "User Promoted.",
+                chat_id: -(ret.chatfrom)
+            });
         } // TODO: reply back
+        else {
+            controller.msg({
+                text: "User Exist.",
+                chat_id: -(ret.chatfrom)
+            });
+        }
     });
 }
 
@@ -130,6 +198,7 @@ function titleLocker(stat, ret){
 
 function Ban(ret) {
     // Check
+    if (ret.target == config.admin_id) return;
     if (ret.type == "ban") {
         db.get("SELECT * FROM banned_list WHERE userid = $uid AND gid = $gid", {
             $uid: ret.target,
@@ -340,9 +409,17 @@ controller.on('new_chat_participant', function (ret) {
             console.error(err);
         } else if (row === undefined) {
             // Not Exist
-            db.run("INSERT INTO managed_group (id, title, is_title_locked) VALUES ($uid, $title, 0)", {
-                $uid: ret.target,
+            db.run("INSERT INTO managed_group (id, title, is_title_locked) VALUES ($id, $title, 0)", {
+                $id: ret.group,
                 $title: ret.title
+            });
+            controller.msg({
+                text: "PeaceManager registered in group " + ret.group,
+                chat_id: -(ret.group)
+            });
+            controller.msg({
+                text: "If you want it unregistered, just remove this bot. You will lost anything except banlists.",
+                chat_id: -(ret.group)
             });
         } else if (row) {
             db.run("UPDATE managed_group SET title = $title WHERE id = $gid", {
@@ -353,6 +430,13 @@ controller.on('new_chat_participant', function (ret) {
     });
 });
 
+controller.on('left_chat_participant', function (ret) {
+    if (ret.user.id == config.bot_id) {
+        db.run("DELETE FROM managed_group WHERE id = $gid", {
+            $gid: ret.group
+        });
+    }
+});
 // First Init
 executor.init(config) // Missing config
 .then(function (status) {

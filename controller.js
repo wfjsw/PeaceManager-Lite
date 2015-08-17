@@ -17,6 +17,14 @@ tg.on('message', function (msg) {
                 user: msg.new_chat_participant
             };
             EventEmitter.emit('new_chat_participant', ret);
+        } else if (msg.left_chat_participant) {
+            var ret = {
+                group: Math.abs(msg.chat.id),
+                title: msg.chat.title,
+                timestamp: msg.date,
+                user: msg.left_chat_participant
+            };
+            EventEmitter.emit('left_chat_participant', ret);
         } else if (msg.new_chat_title) {
             var ret = {
                 group: Math.abs(msg.chat.id),
@@ -248,16 +256,9 @@ function outputGroupInfo(requestfrom, target) {
 
 var outinterface = {
     init: function (config) {
-        return new Promise(function (resolve, reject) {
-            tg = new Telegram(config.token);
-            tg.start();
-            tg.getMe()
-			.then(function (res) {
-                resolve(res);
-            }).catch(function (err) {
-                reject(err);
-            });
-        });
+        tg = new Telegram(config.token);
+        tg.start();
+        return tg.getMe();
     },
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);

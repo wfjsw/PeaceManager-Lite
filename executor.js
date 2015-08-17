@@ -42,7 +42,7 @@ function newmsg(command, resolve, reject) {
 var outinterface = {
     init: function (config) {
         return new Promise(function (resolve, reject) {
-            clientupd = net.connect({port: config.port, host: config.host || "127.0.0.1"}, function() {
+            clientupd = net.connect({path: config.cli.socket}, function() {
                 connected = true;
                 socket.setKeepAlive(true);
                 initqueue();
