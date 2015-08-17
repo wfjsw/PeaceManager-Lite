@@ -35,9 +35,17 @@ function processManagedCommand(ret) {
                         break;
                     case "set-lock-title-on":
                         titleLocker(true, ret);
+                        controller.msg({
+                            text: "Title Locker On!",
+                            chat_id: -(ret.chatfrom)
+                        });
                         break;
                     case "set-lock-title-off":
                         titleLocker(false, ret);
+                        controller.msg({
+                            text: "Title Locker Off!",
+                            chat_id: -(ret.chatfrom)
+                        });
                         break;
                     case "banall":
                         Ban(ret);
@@ -120,7 +128,7 @@ function listModerators(ret) {
         } else {
             var output = "Moderator List for " + ret.chatfrom + "\n";
             for (var i in rows) {
-                output += i.modid + "\n";
+                output += rows[i].modid + "\n";
             }
             controller.msg({
                 text: output,
@@ -157,7 +165,7 @@ function Promote(ret) {
                 $gid: ret.chatfrom
             });
             controller.msg({
-                text: "User Promoted.",
+                text: "User @" + ret.target.username + " Promoted as an Moderator.",
                 chat_id: -(ret.chatfrom)
             });
         } // TODO: reply back
@@ -183,6 +191,10 @@ function Demote(ret) {
             db.run("DELETE FROM moderator_list WHERE modid = $uid AND gid = $gid", {
                 $uid: ret.target.id,
                 $gid: ret.chatfrom
+            });
+            controller.msg({
+                text: "User @" + ret.target.username + " Demoted.",
+                chat_id: -(ret.chatfrom)
             });
         } // TODO: reply back
     });
@@ -214,7 +226,12 @@ function Ban(ret) {
                     $gid: ret.chatfrom
                 });
                 Kick(ret);
-            } 
+            } else {
+                controller.msg({
+                    text: "User Already Banned!",
+                    chat_id: -(ret.chatfrom)
+                });
+            }
         });
     } else if (ret.type == "banall") {
         db.get("SELECT * FROM banall_list WHERE userid = $uid", {
@@ -228,6 +245,11 @@ function Ban(ret) {
                     $uid: ret.target
                 });
                 Kick(ret);
+            } else {
+                controller.msg({
+                    text: "User Already Banned!",
+                    chat_id: -(ret.chatfrom)
+                });
             }
         });
     }
@@ -248,7 +270,12 @@ function unBan(ret) {
                     $uid: ret.target,
                     $gid: ret.chatfrom
                 });
-            } // Else: User Is Not Banned
+            } else {
+                controller.msg({
+                    text: "User is Not Banned!",
+                    chat_id: -(ret.chatfrom)
+                });
+            }// Else: User Is Not Banned - done
         });
     } else if (ret.type == "unbanall") {
         db.get("SELECT * FROM banall_list WHERE userid = $uid", {
@@ -261,7 +288,12 @@ function unBan(ret) {
                 db.run("DELETE FROM banall_list WHERE userid = $uid", {
                     $uid: ret.target
                 });
-            } // Else: User is Not Banned across All
+            } else {
+                controller.msg({
+                    text: "User is Not Banned across all managed Groups!",
+                    chat_id: -(ret.chatfrom)
+                });
+            } // Else: User is Not Banned across All - done
         });
     }
 }
@@ -274,21 +306,6 @@ controller.event.on('cmd_request', function (ret) {
     switch (ret.area) {
         case "any":
             switch (ret.require_permission) {
-                case "admin":
-                    // Check Admin
-                    // We assume that Admin ID is in Config File
-                    if (ret.user.id == config.admin_id) {
-                        /* Command here:
-                        * /reconnect
-                        * /register
-                        */
-                        switch (ret.type) {
-                            case "reconnect":// Low Priority
-                                // executorReconnect(ret);
-                                break;
-                        }
-                    }
-                    break;
                 case "anyone":
                     /* Command here:
                      * /help ---> divide into different situation

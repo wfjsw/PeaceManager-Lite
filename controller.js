@@ -88,7 +88,7 @@ tg.on('message', function (msg) {
                         ret.area = "managed";
                         ret.require_permission = "moderator";
                         event.emit('cmd_request', ret);
-                    } else if (isNaN(strget[1])) {
+                    } else if (!isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "kick";
                         ret.area = "managed";
@@ -103,7 +103,7 @@ tg.on('message', function (msg) {
                         ret.area = "managed";
                         ret.require_permission = "moderator";
                         event.emit('cmd_request', ret);
-                    } else if (isNaN(strget[1])) {
+                    } else if (!isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "ban";
                         ret.area = "managed";
@@ -118,7 +118,7 @@ tg.on('message', function (msg) {
                         ret.area = "managed";
                         ret.require_permission = "admin";
                         event.emit('cmd_request', ret);
-                    } else if (isNaN(strget[1])) {
+                    } else if (!isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "banall";
                         ret.area = "managed";
@@ -133,7 +133,7 @@ tg.on('message', function (msg) {
                         ret.area = "managed";
                         ret.require_permission = "moderator";
                         event.emit('cmd_request', ret);
-                    } else if (isNaN(strget[1])) {
+                    } else if (!isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "unban";
                         ret.area = "managed";
@@ -212,13 +212,6 @@ tg.on('message', function (msg) {
                     ret.require_permission = "anyone";
                     event.emit('cmd_request', ret);
                     break;
-                /*case "/reconnect":
-                    ret.target = msg.from;
-                    ret.type = "reconnect";
-                    ret.area = "any";
-                    ret.require_permission = "admin";
-                    event.emit('cmd_request', ret);
-                    break;*/
                 // .... Not Implemented
                 // case "/resolve-username": // Database Lookup
 
@@ -226,32 +219,11 @@ tg.on('message', function (msg) {
                 case "/set": // May cause deadlock
                     if (strget[1]) 
                         switch (strget[1]) {
-                            // Pass this function to @Jqs7Bot
-                            /*
-                            case "rules":  // don't got an idea here
-                                if (isNaN(strget[2])) {
-                                    ret.target = msg.chat;
-                                    ret.type = "set-rules";
-                                    ret.area = "any";
-                                    ret.require_permission = "admin";
-                                    event.emit('cmd_request', ret);
-                                }
-                                break;
-                            case "description": // don't got an idea here either
-                                if (isNaN(strget[2])) {
-                                    ret.target = msg.chat;
-                                    ret.type = "set-description";
-                                    ret.area = "any";
-                                    ret.require_permission = "admin";
-                                    event.emit('cmd_request', ret);
-                                }
-                                break;
-                             */
                             case "lock":
                                 // blah blah blah...
                                 if (strget[2])
                                     switch (strget[2]) {
-                                        case "titles":
+                                        case "title":
                                             if (strget[3] == "on") {
                                                 ret.target = msg.chat;
                                                 ret.type = "set-lock-title-on";
