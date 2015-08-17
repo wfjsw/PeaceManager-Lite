@@ -38,7 +38,7 @@ var outinterface = {
         });
     },
     kickuser: function (chat, memberid) {
-        newmsg("chat_del_user chat#" + chat + " " + memberid);
+        newmsg("chat_del_user chat#" + chat + " user#" + memberid);
     },
     msg: function (peer, text){
         newmsg("msg chat#" + peer + " " + text);
