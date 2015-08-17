@@ -246,7 +246,6 @@ function unBan(ret) {
                 // Check Passed.
                 db.run("DELETE FROM banned_list WHERE userid = $uid AND gid = $gid", {
                     $uid: ret.target,
-                    $eid: ret.user.id,
                     $gid: ret.chatfrom
                 });
             } // Else: User Is Not Banned

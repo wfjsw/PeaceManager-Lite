@@ -141,7 +141,7 @@ tg.on('message', function (msg) {
                         event.emit('cmd_request', ret);
                     }
                     break;
-                case "/banall":
+                case "/unbanall":
                     if (msg.reply_to_message) {
                         ret.target = msg.reply_to_message.from.id;
                         ret.type = "unbanall";
