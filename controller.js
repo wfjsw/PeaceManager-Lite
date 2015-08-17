@@ -7,6 +7,7 @@ var EventEmitter = require('events').EventEmitter;
 var event = new EventEmitter(); 
 
 tg.on('message', function (msg) {
+    console.log(JSON.stringify(msg));
     if (msg.chat.id < 0) {
         
         // ****************************
