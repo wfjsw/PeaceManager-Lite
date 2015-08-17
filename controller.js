@@ -4,6 +4,7 @@ var Telegram = require('telegram-bot');
 var config = require('./config.js');
 var tg = new Telegram(config.token);
 var EventEmitter = require('events').EventEmitter;
+var event = new EventEmitter(); 
 
 tg.on('message', function (msg) {
     if (msg.chat.id < 0) {
@@ -17,7 +18,7 @@ tg.on('message', function (msg) {
                 timestamp: msg.date,
                 user: msg.new_chat_participant
             };
-            EventEmitter.emit('new_chat_participant', ret);
+            event.emit('new_chat_participant', ret);
         } else if (msg.left_chat_participant) {
             var ret = {
                 group: Math.abs(msg.chat.id),
@@ -25,7 +26,7 @@ tg.on('message', function (msg) {
                 timestamp: msg.date,
                 user: msg.left_chat_participant
             };
-            EventEmitter.emit('left_chat_participant', ret);
+            event.emit('left_chat_participant', ret);
         } else if (msg.new_chat_title) {
             var ret = {
                 group: Math.abs(msg.chat.id),
@@ -33,7 +34,7 @@ tg.on('message', function (msg) {
                 from: msg.from,
                 title: msg.new_chat_title
             };
-            EventEmitter.emit('new_chat_title', ret);
+            event.emit('new_chat_title', ret);
         } else if (msg.new_chat_photo) {
             var ret = {
                 group: Math.abs(msg.chat.id),
@@ -41,14 +42,14 @@ tg.on('message', function (msg) {
                 from: msg.from,
                 photo: msg.new_chat_photo
             };
-            EventEmitter.emit('new_chat_photo', ret);
+            event.emit('new_chat_photo', ret);
         } else if (msg.delete_chat_photo) {
             var ret = {
                 group: Math.abs(msg.chat.id),
                 timestamp: msg.date,
                 from: msg.from
             };
-            EventEmitter.emit('delete_chat_photo', ret);
+            event.emit('delete_chat_photo', ret);
         }
         // OK end.
         // ****************************
@@ -68,14 +69,14 @@ tg.on('message', function (msg) {
                     ret.type = "kick";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 case "/help": // INFO
                     ret.target = msg.chat;
                     ret.type = "help";
                     ret.area = "any";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 // Normal Managed Group Part
                 case "/kick":
@@ -84,13 +85,13 @@ tg.on('message', function (msg) {
                         ret.type = "kick";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     } else if (isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "kick";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     }
                     break;
                 case "/ban":
@@ -99,13 +100,13 @@ tg.on('message', function (msg) {
                         ret.type = "ban";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     } else if (isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "ban";
                         ret.area = "managed";
                         ret.require_permission = "moderator";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     }
                     break;
                 case "/banall":
@@ -114,13 +115,13 @@ tg.on('message', function (msg) {
                         ret.type = "banall";
                         ret.area = "managed";
                         ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     } else if (isNaN(strget[1])) {
                         ret.target = parseInt(strget[1]);
                         ret.type = "banall";
                         ret.area = "managed";
                         ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     }
                     break;
                 case "/rules": // INFO
@@ -128,14 +129,14 @@ tg.on('message', function (msg) {
                     ret.type = "help";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 case "/description": // INFO
                     ret.target = msg.chat;
                     ret.type = "help";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 case "/promote":
                     if (msg.reply_to_message) {
@@ -143,7 +144,7 @@ tg.on('message', function (msg) {
                         ret.type = "promote";
                         ret.area = "managed";
                         ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     }
                     break;
                 case "/demote":
@@ -152,7 +153,7 @@ tg.on('message', function (msg) {
                         ret.type = "demote";
                         ret.area = "managed";
                         ret.require_permission = "admin";
-                        EventEmitter.emit('cmd_request', ret);
+                        event.emit('cmd_request', ret);
                     }
                     break;
                 case "/modlist":
@@ -160,7 +161,7 @@ tg.on('message', function (msg) {
                     ret.type = "modlist";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 case "/group-info":
                     outputGroupInfo(msg.chat, msg.chat); // Implement-ing This
@@ -170,21 +171,21 @@ tg.on('message', function (msg) {
                     ret.type = "listban";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 case "/ping":
                     ret.target = msg.from;
                     ret.type = "ping";
                     ret.area = "any";
                     ret.require_permission = "anyone";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;
                 /*case "/reconnect":
                     ret.target = msg.from;
                     ret.type = "reconnect";
                     ret.area = "any";
                     ret.require_permission = "admin";
-                    EventEmitter.emit('cmd_request', ret);
+                    event.emit('cmd_request', ret);
                     break;*/
                 // .... Not Implemented
                 // case "/resolve-username": // Database Lookup
@@ -201,7 +202,7 @@ tg.on('message', function (msg) {
                                     ret.type = "set-rules";
                                     ret.area = "any";
                                     ret.require_permission = "admin";
-                                    EventEmitter.emit('cmd_request', ret);
+                                    event.emit('cmd_request', ret);
                                 }
                                 break;
                             case "description": // don't got an idea here either
@@ -210,7 +211,7 @@ tg.on('message', function (msg) {
                                     ret.type = "set-description";
                                     ret.area = "any";
                                     ret.require_permission = "admin";
-                                    EventEmitter.emit('cmd_request', ret);
+                                    event.emit('cmd_request', ret);
                                 }
                                 break;
                              */
@@ -224,13 +225,13 @@ tg.on('message', function (msg) {
                                                 ret.type = "set-lock-title-on";
                                                 ret.area = "managed";
                                                 ret.require_permission = "admin";
-                                                EventEmitter.emit('cmd_request', ret);
+                                                event.emit('cmd_request', ret);
                                             } else if (strget[3] == "off") {
                                                 ret.target = msg.chat;
                                                 ret.type = "set-lock-title-off";
                                                 ret.area = "managed";
                                                 ret.require_permission = "admin";
-                                                EventEmitter.emit('cmd_request', ret);
+                                                event.emit('cmd_request', ret);
                                             }
                                             break;
                                         //case "photos": Not Implemented
@@ -263,7 +264,7 @@ var outinterface = {
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);
     },
-    on: EventEmitter.on
+    on: event.on
 };
 
 module.exports = outinterface;
