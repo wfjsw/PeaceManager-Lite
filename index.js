@@ -78,7 +78,7 @@ function processManagedCommand(ret) {
             switch (ret.type) {
                 case "kick":
                     // kickme :p
-                    if (ret.target.id == ret.user.id) Kick(ret);
+                    if (ret.target == ret.user.id) Kick(ret);
                     break;
                 case "help":
                     outputHelp(ret);
