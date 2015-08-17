@@ -1,7 +1,8 @@
 // Controller
 
 var Telegram = require('telegram-bot');
-var tg;
+var config = require('./config.js');
+var tg = new Telegram(config.token);
 var EventEmitter = require('events').EventEmitter;
 
 tg.on('message', function (msg) {
@@ -256,7 +257,6 @@ function outputGroupInfo(requestfrom, target) {
 
 var outinterface = {
     init: function (config) {
-        tg = new Telegram(config.token);
         tg.start();
         return tg.getMe();
     },
