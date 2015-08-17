@@ -107,6 +107,21 @@ function processManagedCommand(ret) {
 
 function outputHelp(ret) {
     // Any Help msg?
+    var helpmsg = "PeaceManager-Lite 1st Release\n";
+    helpmsg += "written by @wfjsw , Bot to manage group chats\n\n";
+    helpmsg += "User can use the following command:\n";
+    helpmsg += " /kickme - Remove me so that I can join again later (if you \"leave\", you may not be able to re-enter) \n";
+    helpmsg += "Moderators commands: \n";
+    helpmsg += " /kick (ID) - Kick by reply or by numeric ID \n";
+    helpmsg += " /ban (ID) - Ban by reply or by numeric ID \n";
+    helpmsg += " /unban (ID) - unBan by reply or by numeric ID \n";
+    helpmsg += "Owner commands:\n";
+    helpmsg += " /promote - Promote a user to Moderator by reply \n";
+    helpmsg += " /demote - Demote a user From Moderator by reply \n";
+    helpmsg += " /banall - Ban by reply or by numeric ID across ALL YOUR MANAGED GROUPS \n";
+    helpmsg += " /set lock title on/off - Lock or Unlock the Title of this group \n\n";
+    helpmsg += "PeaceManager-Lite version 1, Copyright(C) 2015 of wfjsw \n";
+    helpmsg += "PeaceManager-Lite comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; Read GNU General Public License 2.0 for details.";
 }
 
 function requestPing(ret) {
@@ -299,6 +314,7 @@ function unBan(ret) {
 }
 
 function Kick(ret) {
+    if (ret.target != config.admin_id && ret.target != config.bot_id)
     executor.kickuser(ret.chatfrom, ret.target);
 }
 
