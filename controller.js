@@ -67,7 +67,7 @@ tg.on('message', function (msg) {
             };
             switch (strget[0]) {
                 case "/kickme":
-                    ret.target = msg.from;
+                    ret.target = msg.from.id;
                     ret.type = "kick";
                     ret.area = "managed";
                     ret.require_permission = "anyone";
