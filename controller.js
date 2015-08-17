@@ -9,7 +9,7 @@ var event = new EventEmitter();
 tg.on('message', function (msg) {
     console.log(JSON.stringify(msg));
     if (msg.chat.id < 0) {
-        
+        console.log("pass grouped check");
         // ****************************
         // Events for Group Changes
         if (msg.new_chat_participant) {
@@ -20,6 +20,7 @@ tg.on('message', function (msg) {
                 user: msg.new_chat_participant
             };
             event.emit('new_chat_participant', ret);
+            console.log("Event new_chat_participant emitted.")
         } else if (msg.left_chat_participant) {
             var ret = {
                 group: Math.abs(msg.chat.id),
