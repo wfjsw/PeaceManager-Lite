@@ -333,6 +333,7 @@ controller.event.on('delete_chat_photo', function (ret) {
 });
 controller.event.on('new_chat_title', function (ret) {
     // Check Lock - done
+    console.log("check lock" + ret.group);
     db.get("SELECT * FROM managed_group WHERE id = $gid", {
         $gid: ret.group
     }, function (err, row) {
