@@ -1,5 +1,5 @@
 {
-  "name": "PeaceManager",
+  "name": "PeaceManager-Lite",
   "version": "0.1.0",
   "description": "A bot to manage groupchats.",
   "author": "Jianshu Wang",
@@ -7,7 +7,9 @@
     "main": "./index.js"
   },
   "dependencies": {
-    "telegram-bot": "^0.2.0"
+    "telegram-bot": "^0.3.0",
+    "sqlite3": "^3.0.10",
+    "promise": "^7.0.4"
   },
   "private": true
 }
