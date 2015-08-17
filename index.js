@@ -122,6 +122,10 @@ function outputHelp(ret) {
     helpmsg += " /set lock title on/off - Lock or Unlock the Title of this group \n\n";
     helpmsg += "PeaceManager-Lite version 1, Copyright(C) 2015 of wfjsw \n";
     helpmsg += "PeaceManager-Lite comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; Read GNU General Public License 2.0 for details.";
+    controller.msg({
+        text: helpmsg,
+        chat_id: -(ret.chatfrom)
+    });
 }
 
 function requestPing(ret) {
