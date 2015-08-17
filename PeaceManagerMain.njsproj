@@ -17,6 +17,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Compile Include="controller.js" />
     <Compile Include="executor.js" />
