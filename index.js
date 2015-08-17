@@ -5,7 +5,7 @@
 var controller = require('./controller.js');
 var executor = require('./executor.js');
 var config = require('./config.js');
-var sqlite3 = require('sqlite3');
+var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(config.db_file);
 var connected = false;
 
@@ -437,6 +437,8 @@ controller.event.on('left_chat_participant', function (ret) {
         });
     }
 });
+
+
 // First Init
 executor.init(config) // Missing config
 .then(function (status) {
