@@ -251,7 +251,7 @@ function unBan(ret) {
                 });
             } // Else: User Is Not Banned
         });
-    } else if (ret.type == "banall") {
+    } else if (ret.type == "unbanall") {
         db.get("SELECT * FROM banall_list WHERE userid = $uid", {
             $uid: ret.target
         }, function (err, row) {

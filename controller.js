@@ -126,6 +126,36 @@ tg.on('message', function (msg) {
                         event.emit('cmd_request', ret);
                     }
                     break;
+                case "/unban":
+                    if (msg.reply_to_message) {
+                        ret.target = msg.reply_to_message.from.id;
+                        ret.type = "unban";
+                        ret.area = "managed";
+                        ret.require_permission = "moderator";
+                        event.emit('cmd_request', ret);
+                    } else if (isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "unban";
+                        ret.area = "managed";
+                        ret.require_permission = "moderator";
+                        event.emit('cmd_request', ret);
+                    }
+                    break;
+                case "/banall":
+                    if (msg.reply_to_message) {
+                        ret.target = msg.reply_to_message.from.id;
+                        ret.type = "unbanall";
+                        ret.area = "managed";
+                        ret.require_permission = "admin";
+                        event.emit('cmd_request', ret);
+                    } else if (isNaN(strget[1])) {
+                        ret.target = parseInt(strget[1]);
+                        ret.type = "unbanall";
+                        ret.area = "managed";
+                        ret.require_permission = "admin";
+                        event.emit('cmd_request', ret);
+                    }
+                    break;
                 case "/rules": // INFO
                     ret.target = msg.chat;
                     ret.type = "help";
