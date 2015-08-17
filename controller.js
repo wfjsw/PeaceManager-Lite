@@ -266,7 +266,7 @@ var outinterface = {
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);
     },
-    on: event.on
+    event: event
 };
 
 module.exports = outinterface;

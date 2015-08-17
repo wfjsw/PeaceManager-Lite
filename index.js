@@ -271,7 +271,7 @@ function Kick(ret) {
     executor.kickuser(ret.chatfrom, ret.target);
 }
 
-controller.on('cmd_request', function (ret) {
+controller.event.on('cmd_request', function (ret) {
     switch (ret.area) {
         case "any":
             switch (ret.require_permission) {
@@ -324,14 +324,14 @@ controller.on('cmd_request', function (ret) {
             break;
     }
 });
-controller.on('delete_chat_photo', function (ret) {
+controller.event.on('delete_chat_photo', function (ret) {
     // Output id
     controller.msg({
         text: "#GroupPhotoDeleted by @" + ret.from.username + " ( " + ret.from.id + " ) ",
         chat_id: -(ret.group)
     });
 });
-controller.on('new_chat_title', function (ret) {
+controller.event.on('new_chat_title', function (ret) {
     // Check Lock - done
     db.get("SELECT * FROM managed_group WHERE id = $gid", {
         $gid: ret.group
@@ -355,7 +355,7 @@ controller.on('new_chat_title', function (ret) {
         }
     });
 });
-controller.on('new_chat_photo', function (ret) {
+controller.event.on('new_chat_photo', function (ret) {
     // Output id
     controller.msg({
         text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
@@ -363,7 +363,7 @@ controller.on('new_chat_photo', function (ret) {
     });
 });
 
-controller.on('new_chat_participant', function (ret) {
+controller.event.on('new_chat_participant', function (ret) {
     // Check Ban DB
     // First, check Hard-coded global ban db (Only Two User) :p ---> wfjsw/PeaceManager#1 - done
     if (ret.user.id == 68256164 || ret.user.id == 53835259) {
@@ -430,7 +430,7 @@ controller.on('new_chat_participant', function (ret) {
     });
 });
 
-controller.on('left_chat_participant', function (ret) {
+controller.event.on('left_chat_participant', function (ret) {
     if (ret.user.id == config.bot_id) {
         db.run("DELETE FROM managed_group WHERE id = $gid", {
             $gid: ret.group
