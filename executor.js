@@ -10,7 +10,6 @@ var connected = false;
 function newmsg(command, resolve, reject) {
     if (connected = true) {
         clientupd.write(command + "\n", 'utf8', function () {
-            thismsg.callback.resolve("sent");
             console.log("command sent.")
         });
     } else {
