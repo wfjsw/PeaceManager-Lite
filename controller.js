@@ -4,6 +4,7 @@ var Telegram = require('telegram-bot');
 var config = require('./config.js');
 var tg = new Telegram(config.token);
 var EventEmitter = require('events').EventEmitter;
+module.exports.on = EventEmitter.on;
 
 tg.on('message', function (msg) {
     if (msg.chat.id < 0) {
