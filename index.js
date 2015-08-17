@@ -16,7 +16,7 @@ function processManagedCommand(ret) {
         case "admin":
             // Check Admin
             // We assume that Admin ID is in Config File
-            if (ret.from.id == config.admin_id) {
+            if (ret.user.id == config.admin_id) {
                 /*
                  * promote
                  * demote
@@ -55,7 +55,7 @@ function processManagedCommand(ret) {
             }, function (err, row) {
                 if (err) {
                     console.error(err);
-                } else if (row) {
+                } else if (row || ret.user.id == config.admin_id) {
                     // Check Passed.
                     switch (ret.type) {
                         case "kick":
