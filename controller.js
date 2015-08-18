@@ -238,6 +238,21 @@ tg.on('message', function (msg) {
                                                 event.emit('cmd_request', ret);
                                             }
                                             break;
+                                        case "photo":
+                                            if (strget[3] == "on") {
+                                                ret.target = msg.chat;
+                                                ret.type = "set-lock-photo-on";
+                                                ret.area = "managed";
+                                                ret.require_permission = "admin";
+                                                event.emit('cmd_request', ret);
+                                            } else if (strget[3] == "off") {
+                                                ret.target = msg.chat;
+                                                ret.type = "set-lock-photo-off";
+                                                ret.area = "managed";
+                                                ret.require_permission = "admin";
+                                                event.emit('cmd_request', ret);
+                                            }
+                                            break;
                                         //case "photos": Not Implemented
                                     }
                                 break;

@@ -47,6 +47,20 @@ function processManagedCommand(ret) {
                             chat_id: -(ret.chatfrom)
                         });
                         break;
+                    case "set-lock-photo-on":
+                        photoLocker(true, ret);
+                        controller.msg({
+                            text: "Photo Locker On! Remember to read photo_lock_readme.txt before you use!",
+                            chat_id: -(ret.chatfrom)
+                        });
+                        break;
+                    case "set-lock-photo-off":
+                        photoLocker(false, ret);
+                        controller.msg({
+                            text: "Photo Locker Off!",
+                            chat_id: -(ret.chatfrom)
+                        });
+                        break;
                     case "banall":
                         Ban(ret);
                         break;
@@ -107,7 +121,7 @@ function processManagedCommand(ret) {
 
 function outputHelp(ret) {
     // Any Help msg?
-    var helpmsg = "PeaceManager-Lite 1st Release\n";
+    var helpmsg = "PeaceManager-Lite 2nd Release\n";
     helpmsg += "written by @wfjsw , Bot to manage group chats\n\n";
     helpmsg += "User can use the following command:\n";
     helpmsg += " /kickme - Remove me so that I can join again later (if you \"leave\", you may not be able to re-enter) \n";
@@ -121,7 +135,7 @@ function outputHelp(ret) {
     helpmsg += " /banall - Ban by reply or by numeric ID across ALL YOUR MANAGED GROUPS \n";
     helpmsg += " /unbanall - unBan by reply or by numeric ID across ALL YOUR MANAGED GROUPS \n";
     helpmsg += " /set lock title on/off - Lock or Unlock the Title of this group \n\n";
-    helpmsg += "PeaceManager-Lite version 1, Copyright(C) 2015 of wfjsw \n";
+    helpmsg += "PeaceManager-Lite version 2, Copyright(C) 2015 of wfjsw \n";
     helpmsg += "PeaceManager-Lite comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; Read GNU General Public License 2.0 for details.";
     controller.msg({
         text: helpmsg,
@@ -225,6 +239,34 @@ function titleLocker(stat, ret){
     db.run("UPDATE managed_group SET is_title_locked = $lock WHERE id = $gid", {
         $gid: ret.chatfrom,
         $lock: lock
+    });
+}
+
+function photoLocker(stat, ret) {
+    var lock = stat ? 1 : 0;
+    db.run("UPDATE managed_group SET is_photo_locked = $lock WHERE id = $gid", {
+        $gid: ret.chatfrom,
+        $lock: lock
+    });
+}
+
+function photoLockEnforce(ret) {
+    console.log("check lock" + ret.group);
+    db.get("SELECT * FROM managed_group WHERE id = $gid", {
+        $gid: ret.group
+    }, function (err, row) {
+        if (err) {
+            console.error(err);
+            // Send Error Msg
+        } else if (row.is_photo_locked == 1) {
+            executor.group_setphoto(ret.group, config.group_photo_dir + ret.group + ".jpg");
+        } else {
+            // Output something
+            controller.msg({
+                text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
+                chat_id: -(ret.group)
+            });
+        }
     });
 }
 
@@ -382,10 +424,7 @@ controller.event.on('cmd_request', function (ret) {
 });
 controller.event.on('delete_chat_photo', function (ret) {
     // Output id
-    controller.msg({
-        text: "#GroupPhotoDeleted by @" + ret.from.username + " ( " + ret.from.id + " ) ",
-        chat_id: -(ret.group)
-    });
+    photoLockEnforce(ret);
 });
 controller.event.on('new_chat_title', function (ret) {
     // Check Lock - done
@@ -412,12 +451,10 @@ controller.event.on('new_chat_title', function (ret) {
         }
     });
 });
+
 controller.event.on('new_chat_photo', function (ret) {
     // Output id
-    controller.msg({
-        text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
-        chat_id: -(ret.group)
-    });
+    photoLockEnforce(ret);
 });
 
 controller.event.on('new_chat_participant', function (ret) {
@@ -466,7 +503,7 @@ controller.event.on('new_chat_participant', function (ret) {
             console.error(err);
         } else if (row === undefined) {
             // Not Exist
-            db.run("INSERT INTO managed_group (id, title, is_title_locked) VALUES ($id, $title, 0)", {
+            db.run("INSERT INTO managed_group (id, title, is_title_locked, is_photo_locked) VALUES ($id, $title, 0, 0)", {
                 $id: ret.group,
                 $title: ret.title
             });
@@ -490,6 +527,9 @@ controller.event.on('new_chat_participant', function (ret) {
 controller.event.on('left_chat_participant', function (ret) {
     if (ret.user.id == config.bot_id) {
         db.run("DELETE FROM managed_group WHERE id = $gid", {
+            $gid: ret.group
+        });
+        db.run("DELETE FROM moderator_list WHERE gid = $gid", {
             $gid: ret.group
         });
     }
