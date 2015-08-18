@@ -44,7 +44,7 @@ var outinterface = {
         newmsg("msg chat#" + peer + " " + text);
     },
     group_setphoto: function (chat, filename) {
-        newmsg("chat_set_photo chat#" + chat + " " + filename, resolve, reject);
+        newmsg("chat_set_photo chat#" + chat + " " + filename);
     },
     group_setname: function (chat, name) {
         newmsg("rename_chat chat#" + chat + " " + name);
