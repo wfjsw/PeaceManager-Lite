@@ -231,48 +231,58 @@ function titleLocker(stat, ret){
 function Ban(ret) {
     // Check
     if (ret.target == config.admin_id) return;
-    if (ret.type == "ban") {
-        db.get("SELECT * FROM banned_list WHERE userid = $uid AND gid = $gid", {
-            $uid: ret.target,
+    if (ret.target != config.admin_id && ret.target != config.bot_id)
+        db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
+            $uid: ret.user.id,
             $gid: ret.chatfrom
         }, function (err, row) {
             if (err) {
                 console.error(err);
             } else if (row === undefined) {
-                // Check Passed.
-                db.run("INSERT INTO banned_list (userid, banbyid, gid) VALUES ($uid, $eid, $gid)", {
-                    $uid: ret.target,
-                    $eid: ret.user.id,
-                    $gid: ret.chatfrom
-                });
-                Kick(ret);
-            } else {
-                controller.msg({
-                    text: "User Already Banned!",
-                    chat_id: -(ret.chatfrom)
-                });
+                if (ret.type == "ban") {
+                    db.get("SELECT * FROM banned_list WHERE userid = $uid AND gid = $gid", {
+                        $uid: ret.target,
+                        $gid: ret.chatfrom
+                    }, function (err, row) {
+                        if (err) {
+                            console.error(err);
+                        } else if (row === undefined) {
+                            // Check Passed.
+                            db.run("INSERT INTO banned_list (userid, banbyid, gid) VALUES ($uid, $eid, $gid)", {
+                                $uid: ret.target,
+                                $eid: ret.user.id,
+                                $gid: ret.chatfrom
+                            });
+                            Kick(ret);
+                        } else {
+                            controller.msg({
+                                text: "User Already Banned!",
+                                chat_id: -(ret.chatfrom)
+                            });
+                        }
+                    });
+                } else if (ret.type == "banall") {
+                    db.get("SELECT * FROM banall_list WHERE userid = $uid", {
+                        $uid: ret.target
+                    }, function (err, row) {
+                        if (err) {
+                            console.error(err);
+                        } else if (row === undefined) {
+                            // Check Passed.
+                            db.run("INSERT INTO banall_list (userid) VALUES ($uid)", {
+                                $uid: ret.target
+                            });
+                            Kick(ret);
+                        } else {
+                            controller.msg({
+                                text: "User Already Banned!",
+                                chat_id: -(ret.chatfrom)
+                            });
+                        }
+                    });
+                }
             }
         });
-    } else if (ret.type == "banall") {
-        db.get("SELECT * FROM banall_list WHERE userid = $uid", {
-            $uid: ret.target
-        }, function (err, row) {
-            if (err) {
-                console.error(err);
-            } else if (row === undefined) {
-                // Check Passed.
-                db.run("INSERT INTO banall_list (userid) VALUES ($uid)", {
-                    $uid: ret.target
-                });
-                Kick(ret);
-            } else {
-                controller.msg({
-                    text: "User Already Banned!",
-                    chat_id: -(ret.chatfrom)
-                });
-            }
-        });
-    }
 }
 
 function unBan(ret) {
@@ -320,7 +330,16 @@ function unBan(ret) {
 
 function Kick(ret) {
     if (ret.target != config.admin_id && ret.target != config.bot_id)
-    executor.kickuser(ret.chatfrom, ret.target);
+        db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
+            $uid: ret.user.id,
+            $gid: ret.chatfrom
+        }, function (err, row) {
+            if (err) {
+                console.error(err);
+            } else if (row === undefined) {
+                executor.kickuser(ret.chatfrom, ret.target);
+            }
+        });
 }
 
 controller.event.on('cmd_request', function (ret) {
