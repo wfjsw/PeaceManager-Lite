@@ -252,22 +252,24 @@ function photoLocker(stat, ret) {
 
 function photoLockEnforce(ret) {
     console.log("check lock" + ret.group);
-    db.get("SELECT * FROM managed_group WHERE id = $gid", {
-        $gid: ret.group
-    }, function (err, row) {
-        if (err) {
-            console.error(err);
-            // Send Error Msg
-        } else if (row.is_photo_locked == 1) {
-            executor.group_setphoto(ret.group, config.group_photo_dir + ret.group + ".jpg");
-        } else {
-            // Output something
-            controller.msg({
-                text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
-                chat_id: -(ret.group)
-            });
-        }
-    });
+    if (ret.from.id != config.admin_id) {
+        db.get("SELECT * FROM managed_group WHERE id = $gid", {
+            $gid: ret.group
+        }, function (err, row) {
+            if (err) {
+                console.error(err);
+                // Send Error Msg
+            } else if (row.is_photo_locked == 1) {
+                executor.group_setphoto(ret.group, config.group_photo_dir + ret.group + ".jpg");
+            } else {
+                // Output something
+                controller.msg({
+                    text: "#GroupPhotoChanged by @" + ret.from.username + " ( " + ret.from.id + " ) ",
+                    chat_id: -(ret.group)
+                });
+            }
+        });
+    }
 }
 
 function Ban(ret) {
