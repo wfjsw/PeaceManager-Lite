@@ -5,6 +5,7 @@
 var controller = require('./controller.js');
 var executor = require('./executor.js');
 var config = require('./config.js');
+var banlist = require('./banlist.js');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(config.db_file);
 var connected = false;
@@ -462,7 +463,7 @@ controller.event.on('new_chat_photo', function (ret) {
 controller.event.on('new_chat_participant', function (ret) {
     // Check Ban DB
     // First, check Hard-coded global ban db (Only Two User) :p ---> wfjsw/PeaceManager#1 - done
-    if (ret.user.id == 68256164 || ret.user.id == 53835259) {
+    if (ret.user.id == 68256164 || ret.user.id == 53835259 || (banlist.enabled && banlist.banlist.indexOf(ret.user.id) > -1)) {
         executor.kickuser(ret.group, ret.user.id);
         return;
     }

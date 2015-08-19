@@ -8,6 +8,7 @@ Bot to manage Groupchats.
 2. Then, clone this project elsewhere.
 3. run telegram-cli for one time to initate your credential.
 4. register a bot at @Botfather (WARNING: DISABLE THE PRIVACY MODE OR THIS BOT WILL NOT WORK!)
+5. Copy `pmlite.db` to somewhere
 5. copy config.example.js to config.js, then edit content inside. (socket path is at `/where/you/clone/tg/telegram.sock` if follow this instruction)
 6. Open an screen, run `bin/telegram-cli -S telegram.sock -I`
 7. `npm install`
@@ -18,3 +19,9 @@ You are done!
 ## Usage
 
 Add your registered bot to group you own, then ask `/help`
+
+## Known Issue
+
+1. Group photo must be manually upload to a specific folder
+2. Lack of exceptional catching.
+3. Lack of Database Migrating way.
