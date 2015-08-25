@@ -279,6 +279,7 @@ var outinterface = {
     init: function (config) {
         tg.start();
         return tg.getMe();
+        console.log("controller initialized");
     },
     msg: function (msgobj) {
         return tg.sendMessage(msgobj);

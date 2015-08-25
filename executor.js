@@ -23,7 +23,7 @@ var outinterface = {
         return new Promise(function (resolve, reject) {
             clientupd = net.connect({path: config.cli.socket}, function() {
                 connected = true;
-                console.log("executor connected")
+                console.log("executor connected");
                 resolve("connected");
             });
         })

@@ -10,7 +10,7 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(config.db_file);
 var connected = false;
 
-// Main TODO: prevent user from ban bot itself
+// Main TODO: prevent user from ban bot itself - done
 
 function processManagedCommand(ret) {
     switch (ret.require_permission) {
@@ -275,7 +275,6 @@ function photoLockEnforce(ret) {
 
 function Ban(ret) {
     // Check
-    if (ret.target == config.admin_id) return;
     if (ret.target != config.admin_id && ret.target != config.bot_id)
         db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
             $uid: ret.user.id,
@@ -317,7 +316,7 @@ function Ban(ret) {
                             db.run("INSERT INTO banall_list (userid) VALUES ($uid)", {
                                 $uid: ret.target
                             });
-                            Kick(ret);
+                            Kick(ret); // KICK ALL?
                         } else {
                             controller.msg({
                                 text: "User Already Banned!",
@@ -375,19 +374,30 @@ function unBan(ret) {
 
 function Kick(ret) {
     if (ret.target != config.admin_id && ret.target != config.bot_id)
-        db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
-            $uid: ret.user.id,
-            $gid: ret.chatfrom
-        }, function (err, row) {
-            if (err) {
-                console.error(err);
-            } else if (row === undefined) {
-                executor.kickuser(ret.chatfrom, ret.target);
-            }
-        });
+        if (ret.type == "banall") {
+            db.each("SELECT * FROM managed_group", {}, function (err, row) {
+                if (err) {
+                    console.error(err);
+                } else if (row) {
+                    executor.kickuser(row.id, ret.target);
+                }
+            });
+        } else {   
+            db.get("SELECT * FROM moderator_list WHERE modid = $uid AND gid = $gid", {
+                $uid: ret.user.id,
+                $gid: ret.chatfrom
+            }, function (err, row) {
+                if (err) {
+                    console.error(err);
+                } else if (row === undefined) {
+                    executor.kickuser(ret.chatfrom, ret.target);
+                }
+            });
+        }
 }
 
 controller.event.on('cmd_request', function (ret) {
+    if (config.dry_run) return;
     switch (ret.area) {
         case "any":
             switch (ret.require_permission) {
@@ -426,10 +436,12 @@ controller.event.on('cmd_request', function (ret) {
     }
 });
 controller.event.on('delete_chat_photo', function (ret) {
+    if (config.dry_run) return;
     // Output id
     photoLockEnforce(ret);
 });
 controller.event.on('new_chat_title', function (ret) {
+    if (config.dry_run) return;
     // Check Lock - done
     console.log("check lock" + ret.group);
     db.get("SELECT * FROM managed_group WHERE id = $gid", {
@@ -438,7 +450,7 @@ controller.event.on('new_chat_title', function (ret) {
         if (err) {
             console.error(err);
             // Send Error Msg
-        } else if (row.is_title_locked == 1) {
+        } else if (row.is_title_locked == 1 && ret.from.id != config.admin_id) {
             executor.group_setname(ret.group, row.title);
         } else {
             // Output something
@@ -456,11 +468,13 @@ controller.event.on('new_chat_title', function (ret) {
 });
 
 controller.event.on('new_chat_photo', function (ret) {
+    if (config.dry_run) return;
     // Output id
     photoLockEnforce(ret);
 });
 
 controller.event.on('new_chat_participant', function (ret) {
+    if (config.dry_run) return;
     // Check Ban DB
     // First, check Hard-coded global ban db (Only Two User) :p ---> wfjsw/PeaceManager#1 - done
     if (ret.user.id == 68256164 || ret.user.id == 53835259 || (banlist.enabled && banlist.banlist.indexOf(ret.user.id) > -1)) {
@@ -528,11 +542,15 @@ controller.event.on('new_chat_participant', function (ret) {
 });
 
 controller.event.on('left_chat_participant', function (ret) {
+    if (config.dry_run) return;
     if (ret.user.id == config.bot_id) {
         db.run("DELETE FROM managed_group WHERE id = $gid", {
             $gid: ret.group
         });
         db.run("DELETE FROM moderator_list WHERE gid = $gid", {
+            $gid: ret.group
+        });
+        db.run("DELETE FROM banned_list WHERE gid = $gid", {
             $gid: ret.group
         });
     }
